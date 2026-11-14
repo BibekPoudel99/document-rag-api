@@ -1,0 +1,16 @@
+.env
+.venv/
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.log
+logs/
+tmp/
+.cache/
+.huggingface/
+.idea/
+.vscode/
+.DS_Store
