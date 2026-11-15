@@ -2,8 +2,20 @@ import json
 import logging
 import sys
 
+# Libraries that log every HTTP request at INFO; keep them quiet unless they warn.
+_NOISY_LOGGERS = (
+    "httpx",
+    "httpx2",
+    "httpcore",
+    "huggingface_hub",
+    "sentence_transformers",
+    "urllib3",
+    "filelock",
+)
+
+
 class JsonFormatter(logging.Formatter):
-    """emit each log record as one Json line"""
+    """Emit each log record as one JSON line (easy to grep and ship)."""
 
     def format(self, record: logging.LogRecord) -> str:
         payload: dict[str, str] = {
@@ -17,9 +29,11 @@ class JsonFormatter(logging.Formatter):
         return json.dumps(payload)
 
 
-def configure_logging(level:str = "INFO") -> None:
+def configure_logging(level: str = "INFO") -> None:
     handler = logging.StreamHandler(sys.stdout)
     handler.setFormatter(JsonFormatter())
     root = logging.getLogger()
     root.handlers = [handler]
     root.setLevel(level.upper())
+    for name in _NOISY_LOGGERS:
+        logging.getLogger(name).setLevel(logging.WARNING)

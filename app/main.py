@@ -10,7 +10,7 @@ from app.api.error_handlers import register_exception_handlers
 from app.api.routes import health
 from app.core.config import get_settings
 from app.core.logging import configure_logging
-from app.db.session import create_db_engine, create_session_factory
+from app.db.session import create_db_engine, create_session_factory, init_db
 from app.services.embeddings import EmbeddingService
 from app.services.vector_store import VectorStore
 
@@ -24,6 +24,8 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     configure_logging(settings.log_level)
 
     engine = create_db_engine(settings)
+    init_db(engine)  # fail fast if Postgres is down; creates missing tables
+
     qdrant = QdrantClient(url=settings.qdrant_url)
     embedder = EmbeddingService.from_model_name(
         settings.embedding_model, settings.embedding_batch_size

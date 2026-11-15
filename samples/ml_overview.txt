@@ -1,0 +1,11 @@
+﻿Machine Learning Overview
+
+Machine learning is a branch of artificial intelligence in which systems learn patterns from data instead of following hand-written rules. It is used for tasks such as recommendation, fraud detection, translation and image recognition.
+
+There are three main approaches to machine learning. The first approach is supervised learning, where a model is trained on labelled examples. Each training example pairs an input with the correct output, and the model learns to predict outputs for new inputs. Classification and regression are the two common supervised tasks.
+
+The second approach is unsupervised learning, where the data has no labels. The model looks for structure on its own, for example by grouping similar customers together with clustering, or by compressing data with dimensionality reduction. Unsupervised methods are useful for exploration and for preparing data for other models.
+
+The third approach is reinforcement learning, where an agent learns by interacting with an environment. It receives rewards for good actions and penalties for bad ones, and over time it learns a strategy that maximises the total reward. Reinforcement learning is used in robotics, game playing and resource scheduling.
+
+Evaluating a model requires data it has not seen during training. A model that performs well on training data but poorly on new data is overfitting. Techniques such as cross-validation, regularisation and collecting more data help reduce overfitting.

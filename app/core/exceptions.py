@@ -44,3 +44,19 @@ class EncryptedPdfError(AppError):
 class NoExtractableTextError(AppError):
     status_code = 422
     code = "no_extractable_text"
+
+
+
+class DocumentBusyError(AppError):
+    status_code = 409
+    code = "document_busy"
+
+
+class IngestionFailedError(AppError):
+    status_code = 503
+    code = "ingestion_failed"
+
+
+class InvalidChunkingParametersError(AppError):
+    status_code = 422
+    code = "invalid_chunking_parameters"
