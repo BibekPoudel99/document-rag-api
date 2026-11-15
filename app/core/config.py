@@ -33,6 +33,9 @@ class Settings(BaseSettings):
     default_chunk_size: int = 800
     default_chunk_overlap: int = 100
 
+    chat_memory_max_messages: int = 20
+    chat_memory_ttl_seconds: int = 86400
+
     @property
     def database_url(self) -> URL:
         # URL.create escapes special characters in the password for us,
