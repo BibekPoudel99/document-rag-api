@@ -7,7 +7,7 @@ from qdrant_client import QdrantClient
 from redis import Redis
 
 from app.api.error_handlers import register_exception_handlers
-from app.api.routes import health
+from app.api.routes import documents, health
 from app.core.config import get_settings
 from app.core.logging import configure_logging
 from app.db.session import create_db_engine, create_session_factory, init_db
@@ -52,3 +52,4 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 app = FastAPI(title="Palm Mind RAG API", lifespan=lifespan)
 register_exception_handlers(app)
 app.include_router(health.router)
+app.include_router(documents.router)

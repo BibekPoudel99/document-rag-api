@@ -17,6 +17,10 @@ def _client() -> TestClient:
     def boom() -> None:
         raise RuntimeError("secret database password in message")
 
+    @app.get("/needs-int")
+    def needs_int(n: int) -> dict[str, int]:
+        return {"n": n}
+
     return TestClient(app, raise_server_exceptions=False)
 
 
@@ -36,3 +40,17 @@ def test_unexpected_error_hides_details() -> None:
     assert response.status_code == 500
     assert "secret" not in response.text
     assert response.json()["error"]["code"] == "internal_error"
+
+
+def test_validation_errors_use_the_standard_shape() -> None:
+    response = _client().get("/needs-int?n=abc")
+    assert response.status_code == 422
+    body = response.json()
+    assert body["error"]["code"] == "validation_error"
+    assert "query.n" in body["error"]["message"]
+
+
+def test_unknown_route_uses_the_standard_shape() -> None:
+    response = _client().get("/does-not-exist")
+    assert response.status_code == 404
+    assert response.json()["error"]["code"] == "http_error"
