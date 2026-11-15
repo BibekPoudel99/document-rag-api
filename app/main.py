@@ -10,6 +10,8 @@ from app.api.routes import health
 from app.core.config import get_settings
 from app.core.logging import configure_logging
 from app.db.session import create_db_engine, create_session_factory
+from app.api.error_handlers import register_exception_handlers
+
 
 logger = logging.getLogger(__name__)
 
@@ -35,5 +37,6 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     logger.info("application stopped")
 
 
-app = FastAPI(title="Palm Mind RAG API", lifespan=lifespan)
+app = FastAPI(title="Document and RAG API", lifespan=lifespan)
+register_exception_handlers(app)
 app.include_router(health.router)
