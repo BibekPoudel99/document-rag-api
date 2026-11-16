@@ -1,18 +1,22 @@
-"""Test doubles for the ingestion pipeline's external systems."""
+"""Test doubles for the ingestion and chat pipelines' external systems."""
 
 import uuid
 from collections.abc import Sequence
 from dataclasses import dataclass
+from typing import Any
 
+import fakeredis
 from redis.exceptions import ConnectionError as RedisConnectionError
 from sqlalchemy.orm import Session
 
 from app.core.exceptions import LLMUnavailableError
 from app.repositories.documents import DocumentRepository
+from app.services.chat import ChatService
+from app.services.chat_memory import ChatMemory
 from app.services.ingestion import IngestionService
 from app.services.llm import LLMMessage
+from app.services.rag import RagService, Retriever
 from app.services.vector_store import RetrievedChunk, make_point_id
-
 
 class FakeEmbedder:
     dimension = 2
@@ -161,3 +165,51 @@ class FakeSearcher:
             {"top_k": top_k, "document_ids": document_ids, "score_threshold": score_threshold}
         )
         return self.hits[:top_k]
+
+
+
+DEFAULT_DOC_ID = uuid.UUID("11111111-1111-1111-1111-111111111111")
+
+
+def make_chunk(
+    text: str = "Machine learning learns patterns from data.",
+    index: int = 0,
+    score: float = 0.8,
+    filename: str = "notes.txt",
+) -> RetrievedChunk:
+    return RetrievedChunk(str(DEFAULT_DOC_ID), filename, index, text, score)
+
+
+@dataclass
+class ChatHarness:
+    service: ChatService
+    llm: FakeLLM
+    embedder: FakeQueryEmbedder
+    searcher: FakeSearcher
+    memory: ChatMemory
+    locks: FakeRedis
+
+
+def make_chat_harness(
+    hits: Sequence[RetrievedChunk] = (),
+    replies: Sequence[str] = (),
+    memory_redis: Any = None,
+) -> ChatHarness:
+    """A real ChatService/RagService/ChatMemory wired to fakes.
+
+    Memory uses fakeredis (real list semantics); locks use FakeRedis because
+    real redis-py locks need Lua scripting, which fakeredis may not provide.
+    """
+    llm = FakeLLM(*replies)
+    embedder = FakeQueryEmbedder()
+    searcher = FakeSearcher(hits)
+    retriever = Retriever(embedder, searcher, top_k=4, score_threshold=0.3)
+    rag = RagService(llm, retriever, history_messages=6, max_context_chars=6000)
+    memory = ChatMemory(
+        memory_redis or fakeredis.FakeRedis(decode_responses=True),
+        max_messages=20,
+        ttl_seconds=3600,
+    )
+    locks = FakeRedis()
+    service = ChatService(memory, rag, locks)  # type: ignore[arg-type]
+    return ChatHarness(service, llm, embedder, searcher, memory, locks)

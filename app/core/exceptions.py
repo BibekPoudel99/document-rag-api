@@ -65,3 +65,13 @@ class InvalidChunkingParametersError(AppError):
 class LLMUnavailableError(AppError):
     status_code = 503
     code = "llm_unavailable"
+
+
+class ConversationBusyError(AppError):
+    status_code = 409
+    code = "conversation_busy"
+
+
+class ChatMemoryUnavailableError(AppError):
+    status_code = 503
+    code = "memory_unavailable"

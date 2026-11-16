@@ -7,6 +7,7 @@ from redis import Redis
 from sqlalchemy.orm import Session
 
 from app.repositories.documents import DocumentRepository
+from app.services.chat import ChatService
 from app.services.ingestion import IngestionService
 
 
@@ -49,4 +50,11 @@ def get_ingestion_service(
     )
 
 
+def get_chat_service(request: Request, redis_client: RedisClient) -> ChatService:
+    """A cheap per-request wrapper around the shared RAG service and chat memory."""
+    state = request.app.state
+    return ChatService(state.chat_memory, state.rag_service, redis_client)
+
+
 IngestionServiceDep = Annotated[IngestionService, Depends(get_ingestion_service)]
+ChatServiceDep = Annotated[ChatService, Depends(get_chat_service)]
