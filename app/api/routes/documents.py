@@ -11,11 +11,11 @@ from app.services.file_validation import FileType
 router = APIRouter(prefix="/api/v1/documents", tags=["documents"])
 
 _ERROR_RESPONSES: dict[int | str, dict[str, str]] = {
-    status.HTTP_409_CONFLICT: {"description": "The same document is already being processed."},
-    status.HTTP_413_REQUEST_ENTITY_TOO_LARGE: {"description": "File exceeds the upload size limit."},
-    status.HTTP_415_UNSUPPORTED_MEDIA_TYPE: {"description": "Only .pdf and .txt files are supported."},
-    status.HTTP_422_UNPROCESSABLE_ENTITY: {"description": "Invalid file or invalid parameters."},
-    status.HTTP_503_SERVICE_UNAVAILABLE: {"description": "Processing failed; safe to retry."},
+    409: {"description": "The same document is already being processed."},
+    413: {"description": "File exceeds the upload size limit."},
+    415: {"description": "Only .pdf and .txt files are supported."},
+    422: {"description": "Invalid file or invalid parameters."},
+    503: {"description": "Processing failed; safe to retry."},
 }
 
 

@@ -60,3 +60,8 @@ class IngestionFailedError(AppError):
 class InvalidChunkingParametersError(AppError):
     status_code = 422
     code = "invalid_chunking_parameters"
+
+
+class LLMUnavailableError(AppError):
+    status_code = 503
+    code = "llm_unavailable"

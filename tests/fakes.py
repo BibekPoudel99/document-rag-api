@@ -7,9 +7,11 @@ from dataclasses import dataclass
 from redis.exceptions import ConnectionError as RedisConnectionError
 from sqlalchemy.orm import Session
 
+from app.core.exceptions import LLMUnavailableError
 from app.repositories.documents import DocumentRepository
 from app.services.ingestion import IngestionService
-from app.services.vector_store import make_point_id
+from app.services.llm import LLMMessage
+from app.services.vector_store import RetrievedChunk, make_point_id
 
 
 class FakeEmbedder:
@@ -108,3 +110,54 @@ def make_harness(session: Session, max_upload_bytes: int = 1_000_000) -> Ingesti
         default_chunk_overlap=100,
     )
     return IngestionHarness(service, embedder, vector_store, redis_client, session)
+
+
+class FakeLLM:
+    """Returns scripted replies in order (then a default); records every prompt."""
+
+    def __init__(self, *replies: str) -> None:
+        self._replies = list(replies)
+        self.calls: list[list[LLMMessage]] = []
+        self.fail = False
+
+    def chat(
+        self,
+        messages: list[LLMMessage],
+        *,
+        json_mode: bool = False,
+        temperature: float = 0.2,
+        max_tokens: int | None = None,
+    ) -> str:
+        self.calls.append(list(messages))
+        if self.fail:
+            raise LLMUnavailableError("fake llm is down")
+        return self._replies.pop(0) if self._replies else "fake answer"
+
+
+class FakeQueryEmbedder:
+    def __init__(self) -> None:
+        self.queries: list[str] = []
+
+    def embed_query(self, text: str) -> list[float]:
+        self.queries.append(text)
+        return [float(len(text))]
+
+
+class FakeSearcher:
+    """Returns the configured hits (best first) and records how it was called."""
+
+    def __init__(self, hits: Sequence[RetrievedChunk] = ()) -> None:
+        self.hits = list(hits)
+        self.calls: list[dict[str, object]] = []
+
+    def search(
+        self,
+        query_vector: Sequence[float],
+        top_k: int,
+        document_ids: Sequence[uuid.UUID] | None = None,
+        score_threshold: float | None = None,
+    ) -> list[RetrievedChunk]:
+        self.calls.append(
+            {"top_k": top_k, "document_ids": document_ids, "score_threshold": score_threshold}
+        )
+        return self.hits[:top_k]

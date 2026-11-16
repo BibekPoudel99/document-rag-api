@@ -36,6 +36,17 @@ class Settings(BaseSettings):
     chat_memory_max_messages: int = 20
     chat_memory_ttl_seconds: int = 86400
 
+    llm_base_url: str = "http://localhost:11434"
+    llm_model: str = "phi3:mini"
+    llm_timeout_seconds: float = 120.0
+    llm_context_tokens: int = 4096
+    llm_max_answer_tokens: int = 400
+
+    rag_top_k: int = 4
+    rag_score_threshold: float = 0.30
+    rag_history_messages: int = 6
+    rag_max_context_chars: int = 6000
+
     @property
     def database_url(self) -> URL:
         # URL.create escapes special characters in the password for us,
